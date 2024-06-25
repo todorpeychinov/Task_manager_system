@@ -10,7 +10,7 @@ def prepare_file_for_using(tasks):
     '''
     for task in tasks:
         date_as_str = task['deadline']
-        date = datetime.strptime(date_as_str, '%Y-%m-%d')
+        date = datetime.strptime(date_as_str, '%Y-%m-%d %H:%M:%S')
         task['deadline'] = date
     return tasks
 
@@ -436,7 +436,7 @@ def load_tasks_from_file(file_path):
 
     with open(file_path, 'r') as f:
         loaded_data = json.load(f)
-    return prepare_file_for_saving(loaded_data)
+    return prepare_file_for_using(loaded_data)
 
 
 def sort_tasks_by_deadline(tasks):
