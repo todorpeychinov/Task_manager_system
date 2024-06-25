@@ -2,9 +2,58 @@ import json
 from datetime import datetime
 
 
+def prepare_file_for_using(tasks):
+    '''
+    Preparing the list of tasks from the json file to be used in the program.
+    :param tasks: tasks list
+    :return: ready tasks list for the program
+    '''
+    for task in tasks:
+        date_as_str = task['deadline']
+        date = datetime.strptime(date_as_str, '%Y-%m-%d')
+        task['deadline'] = date
+    return tasks
+
+
+def prepare_file_for_saving(tasks):
+    '''
+    Preparing the list of tasks for saving in a json file.
+    :param tasks: tasks_list
+    :return: ready_to_be_saved_list
+    '''
+    for task in tasks:
+        date = task['deadline']
+        date_as_string = str(date)
+        task['deadline'] = date_as_string
+    return tasks
+
+def is_valid_date(date):
+    '''
+    Date input validation
+    :param date: date_input
+    :return: True or False
+    '''
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_priority(priority):
+    if (
+            priority == 'low'
+            or priority == 'medium'
+            or priority == 'high'
+    ):
+        return True
+    return False
+
+
 def check_task_index(tasks, task_id):
-    task_index = (index for index, task in enumerate(tasks) if task['id'] == task_id)
-    return task_index
+    for task in tasks:
+        if task['id'] == task_id:
+            return tasks.index(task)
 
 
 def is_existing_id(tasks, id):
@@ -36,8 +85,26 @@ def add_task(tasks, task):
     while flag:
         print('\nCurrent id already exists')
         new_id = int(input('Enter new task id: '))
-        task['task_id'] = new_id
+        task['id'] = new_id
         flag = is_existing_id(tasks, task['id'])
+
+    while not is_valid_date(task['deadline']):
+        print('\nInvalid date format')
+        date_string = input('Enter valid date format (YYYY-MM-DD): ')
+        task['deadline'] = date_string
+
+    while not is_valid_priority(task['priority']):
+        print('\nInvalid priority format')
+        priority_string = input('Enter valid priority format: (low, medium or high): ')
+        task['priority'] = priority_string
+
+    date_as_string = task['deadline']
+    date_list = date_as_string.split('-')
+    year = int(date_list[0])
+    month = int(date_list[1])
+    day = int(date_list[2])
+    x = datetime(year, month, day)
+    task['deadline'] = x
 
     tasks.append(task)
 
@@ -56,17 +123,13 @@ def remove_task(tasks, task_id):
     list of dict: Updated list of tasks.
     """
 
-    if not is_existing_id(tasks, task_id):
+    while not is_existing_id(tasks, task_id):
         print('\nTask not found')
-    return tasks
+        task_id = int(input('Enter a valid task id: '))
 
     task_index = check_task_index(tasks, task_id)
     tasks.pop(task_index)
-
     return tasks
-
-
-
 
 
 def update_task(tasks, task_id, updated_task):
@@ -81,12 +144,12 @@ def update_task(tasks, task_id, updated_task):
     Returns:
     list of dict: Updated list of tasks.
     """
-
-    if is_existing_id(tasks, task_id):
-        index = check_task_index(tasks, task_id)
-        tasks[index] = updated_task
-    else:
+    while not is_existing_id(tasks, task_id):
         print('\nTask not found')
+        task_id = int(input('Enter a valid task id: '))
+
+    index = check_task_index(tasks, task_id)
+    tasks[index] = updated_task
 
     return tasks
 
@@ -103,6 +166,13 @@ def get_task(tasks, task_id):
     dict: The task with the specified ID, or None if not found.
     """
 
+    if is_existing_id(tasks, task_id):
+        task_index = check_task_index(tasks, task_id)
+        return tasks[task_index]
+    else:
+        print('\nTask not found')
+        return None
+
 
 def set_task_priority(tasks, task_id, priority):
     """
@@ -116,6 +186,14 @@ def set_task_priority(tasks, task_id, priority):
     Returns:
     list of dict: Updated list of tasks.
     """
+    while not is_existing_id(tasks, task_id):
+        print('\nTask not found')
+        task_id = int(input('Enter a valid task id: '))
+
+    index = check_task_index(tasks, task_id)
+    tasks[index]['priority'] = priority
+
+    return tasks
 
 
 def set_task_deadline(tasks, task_id, deadline):
@@ -130,6 +208,14 @@ def set_task_deadline(tasks, task_id, deadline):
     Returns:
     list of dict: Updated list of tasks.
     """
+    while not is_existing_id(tasks, task_id):
+        print('\nTask not found')
+        task_id = int(input('Enter a valid task id: '))
+
+    index = check_task_index(tasks, task_id)
+    tasks[index]['deadline'] = deadline
+
+    return tasks
 
 
 def mark_task_as_completed(tasks, task_id):
@@ -143,6 +229,14 @@ def mark_task_as_completed(tasks, task_id):
     Returns:
     list of dict: Updated list of tasks.
     """
+    while not is_existing_id(tasks, task_id):
+        print('\nTask not found')
+        task_id = int(input('Enter a valid task id: '))
+
+    index = check_task_index(tasks, task_id)
+    tasks[index]['completed'] = True
+
+    return tasks
 
 
 def set_task_description(tasks, task_id, description):
@@ -158,6 +252,15 @@ def set_task_description(tasks, task_id, description):
     list of dict: Updated list of tasks.
     """
 
+    while not is_existing_id(tasks, task_id):
+        print('\nTask not found')
+        task_id = int(input('Enter a valid task id: '))
+
+    index = check_task_index(tasks, task_id)
+    tasks[index]['description'] = description
+
+    return tasks
+
 
 def search_tasks_by_keyword(tasks, keyword):
     """
@@ -171,6 +274,12 @@ def search_tasks_by_keyword(tasks, keyword):
     list of dict: Tasks that contain the keyword in their description.
     """
 
+    list_of_results = []
+    for task in tasks:
+        if keyword in task['description']:
+            list_of_results.append(task)
+    return list_of_results
+
 
 def filter_tasks_by_priority(tasks, priority):
     """
@@ -183,6 +292,12 @@ def filter_tasks_by_priority(tasks, priority):
     Returns:
     list of dict: Tasks with the specified priority.
     """
+    while not is_valid_priority(priority):
+        print('\nInvalid priority format')
+        priority = input('Enter valid priority format: (low, medium or high): ')
+
+    priority_list = [task for task in tasks if task['priority'] == priority]
+    return priority_list
 
 
 def filter_tasks_by_status(tasks, status):
@@ -196,6 +311,13 @@ def filter_tasks_by_status(tasks, status):
     Returns:
     list of dict: Tasks with the specified completion status.
     """
+    tasks_with_status = []
+
+    if status == 'completed':
+        tasks_with_current_status = [task for task in tasks if task['completed'] == True]
+    else:
+        tasks_with_current_status = [task for task in tasks if not task['completed'] == False]
+    return tasks_with_current_status
 
 
 def filter_tasks_by_deadline(tasks, deadline):
@@ -209,6 +331,13 @@ def filter_tasks_by_deadline(tasks, deadline):
     Returns:
     list of dict: Tasks with the specified deadline.
     """
+    while not is_valid_date(deadline):
+        print('\nInvalid deadline format')
+        deadline = input('Enter valid deadline format: (YYYY-MM-DD): ')
+
+    deadline = datetime.strptime(deadline, '%Y-%m-%d')
+    tasks_with_current_deadline = [task for task in tasks if task['deadline'] == deadline]
+    return tasks_with_current_deadline
 
 
 def count_tasks(tasks):
@@ -222,6 +351,8 @@ def count_tasks(tasks):
     int: The total number of tasks.
     """
 
+    return len(tasks)
+
 
 def count_completed_tasks(tasks):
     """
@@ -234,6 +365,12 @@ def count_completed_tasks(tasks):
     int: The number of completed tasks.
     """
 
+    counter = 0
+    for task in tasks:
+        if task['completed'] == True:
+            counter += 1
+    return counter
+
 
 def count_pending_tasks(tasks):
     """
@@ -245,6 +382,11 @@ def count_pending_tasks(tasks):
     Returns:
     int: The number of pending tasks.
     """
+    counter = 0
+    for task in tasks:
+        if task['completed'] == False:
+            counter += 1
+    return counter
 
 
 def generate_task_summary(tasks):
@@ -258,6 +400,12 @@ def generate_task_summary(tasks):
     dict: A summary report containing total, completed, and pending tasks.
     """
 
+    completed_tasks = count_completed_tasks(tasks)
+    pending_tasks = count_pending_tasks(tasks)
+    total_tasks = completed_tasks + pending_tasks
+    summary = {'completed': completed_tasks, 'pending': pending_tasks, 'total': total_tasks}
+    return summary
+
 
 def save_tasks_to_file(tasks, file_path):
     """
@@ -270,6 +418,9 @@ def save_tasks_to_file(tasks, file_path):
     Returns:
     None
     """
+    ready_to_save_list = prepare_file_for_saving(tasks)
+    with open(file_path, 'w') as fout:
+        json.dump(ready_to_save_list, fout)
 
 
 def load_tasks_from_file(file_path):
@@ -283,6 +434,10 @@ def load_tasks_from_file(file_path):
     list of dict: The loaded list of tasks.
     """
 
+    with open(file_path, 'r') as f:
+        loaded_data = json.load(f)
+    return prepare_file_for_saving(loaded_data)
+
 
 def sort_tasks_by_deadline(tasks):
     """
@@ -294,6 +449,8 @@ def sort_tasks_by_deadline(tasks):
     Returns:
     list of dict: The sorted list of tasks.
     """
+    tasks = sorted(tasks, key=lambda task: task['deadline'])
+    return tasks
 
 
 def sort_tasks_by_priority(tasks):
@@ -306,6 +463,13 @@ def sort_tasks_by_priority(tasks):
     Returns:
     list of dict: The sorted list of tasks.
     """
+
+    list_of_low_priority_tasks = [task for task in tasks if task['priority'] == 'low']
+    list_of_medium_priority_tasks = [task for task in tasks if task['priority'] == 'medium']
+    list_of_high_priority_tasks = [task for task in tasks if task['priority'] == 'high']
+
+    tasks = list_of_low_priority_tasks + list_of_medium_priority_tasks + list_of_high_priority_tasks
+    return tasks
 
 
 def print_menu():
