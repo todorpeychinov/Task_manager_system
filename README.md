@@ -112,5 +112,5 @@ Upon starting the console application, the user sees a menu with available optio
 </p>
 
 ## 📁 File Example 
-[Click here for result file example](URL)
+[Click here for result file example](https://github.com/todorpeychinov/Task_manager_system/blob/main/example_file)
 
